@@ -1,7 +1,7 @@
 mysql:
   host: 192.168.10.21
   user: wms_user
-  password: changeme
+  password: epsi
   database: wms
 
 ad_dns:
