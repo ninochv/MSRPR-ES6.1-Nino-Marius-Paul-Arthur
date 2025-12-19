@@ -1,0 +1,194 @@
+# =============================================================================
+# NTL-SysToolbox Configuration
+# Nord Transit Logistics - Outil d'exploitation système
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Configuration Générale
+# -----------------------------------------------------------------------------
+general:
+  # Niveau de log: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_level: INFO
+  # Répertoire des logs
+  log_dir: ./logs
+  # Répertoire des sauvegardes
+  backup_dir: ./backups
+  # Répertoire des rapports
+  report_dir: ./reports
+  # Format de sortie par défaut: human, json, both
+  output_format: both
+
+# -----------------------------------------------------------------------------
+# Contrôleurs de Domaine (AD/DNS)
+# -----------------------------------------------------------------------------
+domain_controllers:
+  - name: DC-PRIMARY
+    ip: 192.168.10.10
+    description: "Contrôleur de domaine principal"
+  - name: DC-SECONDARY
+    ip: 192.168.10.11
+    description: "Contrôleur de domaine secondaire"
+
+# Services à vérifier sur les DC
+ad_services:
+  windows:
+    - NTDS          # Active Directory Domain Services
+    - DNS           # DNS Server
+    - Netlogon      # Net Logon
+    - DFSR          # DFS Replication
+    - W32Time       # Windows Time
+  linux:
+    - samba-ad-dc   # Samba AD DC (si applicable)
+    - bind9         # DNS BIND
+
+# -----------------------------------------------------------------------------
+# Base de données WMS (MySQL)
+# -----------------------------------------------------------------------------
+wms_database:
+  host: 192.168.10.21
+  port: 3306
+  database: wms_production
+  # Les credentials sont gérés via variables d'environnement ou .env
+  # NTL_DB_USER et NTL_DB_PASSWORD
+  charset: utf8mb4
+  connect_timeout: 10
+
+# -----------------------------------------------------------------------------
+# Configuration Sauvegarde
+# -----------------------------------------------------------------------------
+backup:
+  # Tables importantes à sauvegarder individuellement
+  critical_tables:
+    - orders
+    - inventory
+    - shipments
+    - customers
+    - products
+  # Rétention des sauvegardes (en jours)
+  retention_days: 30
+  # Compression des exports
+  compress: true
+  # Vérification d'intégrité (hash SHA256)
+  verify_integrity: true
+
+# -----------------------------------------------------------------------------
+# Configuration Audit Réseau
+# -----------------------------------------------------------------------------
+network_audit:
+  # Plages réseau à scanner
+  scan_ranges:
+    - 192.168.10.0/24
+  # Timeout pour le scan (en secondes)
+  scan_timeout: 2
+  # Ports à scanner pour détection OS
+  scan_ports:
+    - 22    # SSH
+    - 80    # HTTP
+    - 135   # Windows RPC
+    - 139   # NetBIOS
+    - 443   # HTTPS
+    - 445   # SMB
+    - 3306  # MySQL
+    - 3389  # RDP
+  # Nombre de threads pour le scan
+  max_threads: 50
+
+# -----------------------------------------------------------------------------
+# Base de données End-of-Life (EOL)
+# Dates de fin de support pour les OS courants
+# -----------------------------------------------------------------------------
+eol_database:
+  # Windows Server
+  - os: "Windows Server 2012 R2"
+    eol_date: "2023-10-10"
+    extended_support: "2026-10-13"
+    
+  - os: "Windows Server 2016"
+    eol_date: "2027-01-12"
+    extended_support: "2027-01-12"
+    
+  - os: "Windows Server 2019"
+    eol_date: "2029-01-09"
+    extended_support: "2029-01-09"
+    
+  - os: "Windows Server 2022"
+    eol_date: "2031-10-14"
+    extended_support: "2031-10-14"
+
+  # Ubuntu LTS
+  - os: "Ubuntu 18.04"
+    eol_date: "2023-05-31"
+    extended_support: "2028-04-01"
+    
+  - os: "Ubuntu 20.04"
+    eol_date: "2025-04-02"
+    extended_support: "2030-04-02"
+    
+  - os: "Ubuntu 22.04"
+    eol_date: "2027-04-01"
+    extended_support: "2032-04-01"
+    
+  - os: "Ubuntu 24.04"
+    eol_date: "2029-04-01"
+    extended_support: "2034-04-01"
+
+  # VMware ESXi (CRITIQUE - mentionné dans le sujet)
+  - os: "VMware ESXi 6.5"
+    eol_date: "2022-10-15"
+    extended_support: "2022-10-15"
+    
+  - os: "VMware ESXi 6.7"
+    eol_date: "2022-10-15"
+    extended_support: "2023-11-15"
+    
+  - os: "VMware ESXi 7.0"
+    eol_date: "2025-04-02"
+    extended_support: "2027-04-02"
+    
+  - os: "VMware ESXi 8.0"
+    eol_date: "2029-04-01"
+    extended_support: "2031-04-01"
+
+  # Debian
+  - os: "Debian 10"
+    eol_date: "2024-06-30"
+    extended_support: "2026-06-30"
+    
+  - os: "Debian 11"
+    eol_date: "2026-06-01"
+    extended_support: "2028-06-01"
+    
+  - os: "Debian 12"
+    eol_date: "2028-06-01"
+    extended_support: "2030-06-01"
+
+  # CentOS / RHEL
+  - os: "CentOS 7"
+    eol_date: "2024-06-30"
+    extended_support: "2024-06-30"
+    
+  - os: "RHEL 7"
+    eol_date: "2024-06-30"
+    extended_support: "2026-06-30"
+    
+  - os: "RHEL 8"
+    eol_date: "2029-05-31"
+    extended_support: "2031-05-31"
+    
+  - os: "RHEL 9"
+    eol_date: "2032-05-31"
+    extended_support: "2034-05-31"
+
+# -----------------------------------------------------------------------------
+# Seuils d'alerte système
+# -----------------------------------------------------------------------------
+thresholds:
+  cpu_warning: 80
+  cpu_critical: 95
+  memory_warning: 80
+  memory_critical: 95
+  disk_warning: 80
+  disk_critical: 95
+  # Jours avant EOL pour alerter
+  eol_warning_days: 180
+  eol_critical_days: 30
