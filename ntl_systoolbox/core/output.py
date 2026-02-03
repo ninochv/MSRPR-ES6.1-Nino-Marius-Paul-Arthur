@@ -230,8 +230,9 @@ class OutputFormatter:
             json.dump(self.get_summary(), f, indent=2, ensure_ascii=False)
     
     @staticmethod
-    def format_bytes(size: int) -> str:
+    def format_bytes(size) -> str:
         """Formate une taille en bytes en format lisible."""
+        size = float(size)  # Convertir Decimal en float si nécessaire
         for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
             if size < 1024.0:
                 return f"{size:.2f} {unit}"

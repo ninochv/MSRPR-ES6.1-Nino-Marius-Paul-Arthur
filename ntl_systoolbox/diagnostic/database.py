@@ -327,51 +327,6 @@ class DatabaseChecker:
             self.logger.error(f"Erreur récupération stats DB: {e}")
             return {}
     
-    def _get_database_stats(self) -> Dict[str, Any]:
-        """
-        Récupère les statistiques de la base de données.
-        
-        Returns:
-            Statistiques de la base
-        """
-        if not self._connection:
-            return {}
-        
-        try:
-            cursor = self._connection.cursor(dictionary=True)
-            stats = {}
-            
-            # Nombre de tables
-            cursor.execute("""
-                SELECT COUNT(*) as table_count 
-                FROM information_schema.tables 
-                WHERE table_schema = DATABASE()
-            """)
-            result = cursor.fetchone()
-            stats['table_count'] = result['table_count'] if result else 0
-            
-            # Taille de la base
-            cursor.execute("""
-                SELECT 
-                    SUM(data_length + index_length) as total_size,
-                    SUM(data_length) as data_size,
-                    SUM(index_length) as index_size
-                FROM information_schema.tables 
-                WHERE table_schema = DATABASE()
-            """)
-            result = cursor.fetchone()
-            if result:
-                stats['total_size'] = OutputFormatter.format_bytes(result['total_size'] or 0)
-                stats['data_size'] = OutputFormatter.format_bytes(result['data_size'] or 0)
-                stats['index_size'] = OutputFormatter.format_bytes(result['index_size'] or 0)
-            
-            cursor.close()
-            return stats
-            
-        except Exception as e:
-            self.logger.error(f"Erreur récupération stats DB: {e}")
-            return {}
-    
     def _check_server_status(self) -> Dict[str, Any]:
         """
         Vérifie le statut du serveur MySQL.
