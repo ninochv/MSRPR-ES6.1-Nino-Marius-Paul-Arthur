@@ -33,14 +33,14 @@ class OutputFormatter:
     Formateur de sortie pour les résultats des modules.
     Supporte les sorties humaines lisibles et JSON structuré.
     """
-    
-    # Symboles Unicode pour l'affichage
+
+    # Symboles pour l'affichage (ASCII compatible Windows)
     SYMBOLS = {
-        Severity.OK: "✓",
-        Severity.INFO: "ℹ",
-        Severity.WARNING: "⚠",
-        Severity.CRITICAL: "✗",
-        Severity.UNKNOWN: "?",
+        Severity.OK: "[OK]",
+        Severity.INFO: "[i]",
+        Severity.WARNING: "[!]",
+        Severity.CRITICAL: "[X]",
+        Severity.UNKNOWN: "[?]",
     }
     
     # Couleurs ANSI
