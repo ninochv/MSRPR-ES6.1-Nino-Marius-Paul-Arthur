@@ -113,27 +113,32 @@ class ServiceChecker:
         
         # Vérification des ports/services
         for service_name, port in self.SERVICE_PORTS.items():
-            is_open, response_time = self._check_port(ip, port)
+            # DNS utilise UDP, pas TCP
+            use_udp = (service_name == 'DNS')
+            is_open, response_time = self._check_port(ip, port, use_udp=use_udp)
             results['services'][service_name] = {
                 'port': port,
+                'protocol': 'UDP' if use_udp else 'TCP',
                 'status': 'open' if is_open else 'closed',
                 'response_time_ms': response_time,
             }
-            
+
             if is_open:
+                proto = "UDP" if use_udp else "TCP"
                 self.output.add_result(
                     f"Service {service_name}",
                     Severity.OK,
-                    f"Port {port} ouvert ({response_time:.1f}ms)",
+                    f"Port {proto}/{port} ouvert ({response_time:.1f}ms)",
                     target=target
                 )
             else:
-                # DNS et LDAP sont critiques
+                # DNS, LDAP et Kerberos sont critiques
                 severity = Severity.CRITICAL if service_name in ['LDAP', 'DNS', 'Kerberos'] else Severity.WARNING
+                proto = "UDP" if use_udp else "TCP"
                 self.output.add_result(
                     f"Service {service_name}",
                     severity,
-                    f"Port {port} fermé ou inaccessible",
+                    f"Port {proto}/{port} ferme ou inaccessible",
                     target=target
                 )
         
@@ -209,35 +214,55 @@ class ServiceChecker:
             self.logger.error(f"Erreur ping {ip}: {e}")
             return False, 0.0
     
-    def _check_port(self, ip: str, port: int, timeout: float = 2.0) -> Tuple[bool, float]:
+    def _check_port(self, ip: str, port: int, timeout: float = 2.0, use_udp: bool = False) -> Tuple[bool, float]:
         """
-        Vérifie si un port TCP est ouvert.
-        
+        Vérifie si un port TCP ou UDP est ouvert.
+
         Args:
             ip: Adresse IP
             port: Numéro de port
             timeout: Timeout en secondes
-            
+            use_udp: Utiliser UDP au lieu de TCP
+
         Returns:
             Tuple (ouvert, temps_ms)
         """
         import time
-        
+
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(timeout)
-            
-            start_time = time.time()
-            result = sock.connect_ex((ip, port))
-            elapsed = (time.time() - start_time) * 1000
-            
-            sock.close()
-            
-            if result == 0:
-                return True, elapsed
+            if use_udp:
+                # Pour UDP, on envoie un paquet et on attend une réponse
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                sock.settimeout(timeout)
+
+                start_time = time.time()
+                # Envoyer une requête DNS simple (query pour ".")
+                dns_query = b'\x00\x01\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x01'
+                sock.sendto(dns_query, (ip, port))
+
+                try:
+                    data, addr = sock.recvfrom(512)
+                    elapsed = (time.time() - start_time) * 1000
+                    sock.close()
+                    return True, elapsed
+                except socket.timeout:
+                    sock.close()
+                    return False, 0.0
             else:
-                return False, 0.0
-                
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(timeout)
+
+                start_time = time.time()
+                result = sock.connect_ex((ip, port))
+                elapsed = (time.time() - start_time) * 1000
+
+                sock.close()
+
+                if result == 0:
+                    return True, elapsed
+                else:
+                    return False, 0.0
+
         except socket.timeout:
             return False, 0.0
         except Exception as e:
