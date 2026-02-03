@@ -146,8 +146,6 @@ thresholds:
 
 ### Fichier `.env` (Secrets)
 
-**ATTENTION: Ne jamais commiter ce fichier dans Git !**
-
 ```bash
 # Credentials Base de données WMS
 NTL_DB_USER=wms_admin

@@ -4,7 +4,9 @@
       "Bash(python -m ntl_systoolbox.cli audit scan:*)",
       "Bash(pip install:*)",
       "Bash(python -m ntl_systoolbox.cli audit report:*)",
-      "Bash(python -m ntl_systoolbox.cli:*)"
+      "Bash(python -m ntl_systoolbox.cli:*)",
+      "Bash(git push:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nFix Unicode encoding error on Windows console\n\nReplace Unicode symbols with ASCII equivalents in output.py\nto fix UnicodeEncodeError with cp1252 encoding on Windows.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   }
 }
